@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Main Quest - The Lunch</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=Inter:wght@400;500;600&family=Caveat:wght@400;600&display=swap" rel="stylesheet" />
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+
+<style>
+  :root {
+    --paper:        #f6efe2;
+    --paper-deep:   #ecdfc6;
+    --ink:          #2a1d12;
+    --ink-soft:     #5a4636;
+    --ink-faded:    #8a7660;
+    --rust:         #b8431f;
+    --rust-deep:    #8a2f12;
+    --olive:        #6b7a3a;
+    --mustard:      #c98a1e;
+    --cream:        #fbf6ea;
+    --line:         #d9c9a8;
+    --line-soft:    rgba(90, 70, 54, 0.18);
+    --shadow:       0 1px 0 rgba(42, 29, 18, 0.04), 0 8px 24px -12px rgba(42, 29, 18, 0.18);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(184, 67, 31, 0.04) 0, transparent 40%),
+      radial-gradient(circle at 80% 80%, rgba(107, 122, 58, 0.05) 0, transparent 40%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.16  0 0 0 0 0.11  0 0 0 0 0.07  0 0 0 0.05 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .serif { font-family: 'Fraunces', Georgia, serif; }
+  .hand  { font-family: 'Caveat', cursive; }
+
+  /* ---------- Header ---------- */
+  .masthead {
+    border-bottom: 2px solid var(--ink);
+    padding: 28px 40px 18px;
+    background: var(--cream);
+    position: relative;
+  }
+  .masthead::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: -6px;
+    height: 2px;
+    background: var(--ink);
+    opacity: 0.4;
+  }
+  .masthead-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 14px;
+  }
+  .masthead-top span { display: inline-flex; align-items: center; gap: 6px; }
+  .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--rust); display: inline-block; }
+  h1.title {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: clamp(40px, 7vw, 76px);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    margin: 0;
+    text-align: center;
+    font-style: italic;
+  }
+  h1.title .amp {
+    font-style: italic;
+    color: var(--rust);
+    font-weight: 400;
+  }
+  .subtitle {
+    text-align: center;
+    font-family: 'Caveat', cursive;
+    font-size: 22px;
+    color: var(--rust-deep);
+    margin: 8px 0 0;
+    font-weight: 600;
+  }
+
+  /* ---------- Layout ---------- */
+  .container {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 32px 40px 80px;
+  }
+
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+    margin-bottom: 28px;
+    padding: 16px 20px;
+    background: var(--cream);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    box-shadow: var(--shadow);
+  }
+
+  .filter-group { display: flex; align-items: center; gap: 8px; }
+  .filter-label {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+  select, input[type="text"] {
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 7px 12px;
+    outline: none;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  select:focus, input[type="text"]:focus {
+    border-color: var(--rust);
+    background: var(--cream);
+  }
+
+  .btn {
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    background: var(--ink);
+    color: var(--cream);
+    border: none;
+    padding: 9px 18px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: transform 0.1s, background 0.15s;
+  }
+  .btn:hover { background: var(--rust-deep); }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { background: var(--rust); }
+  .btn-primary:hover { background: var(--rust-deep); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--line);
+  }
+  .btn-ghost:hover {
+    background: var(--paper-deep);
+  }
+
+  .toolbar-spacer { flex: 1; }
+
+  .stats-line {
+    text-align: center;
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    color: var(--ink-soft);
+    font-size: 14px;
+    margin-bottom: 24px;
+    letter-spacing: 0.02em;
+  }
+  .stats-line strong { color: var(--rust-deep); font-weight: 600; }
+
+  /* ---------- Today's pick banner ---------- */
+  .pick-banner {
+    background: var(--ink);
+    color: var(--cream);
+    padding: 20px 28px;
+    border-radius: 4px;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+  }
+  .pick-banner::before {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border: 1px solid rgba(251, 246, 234, 0.15);
+    border-radius: 2px;
+    pointer-events: none;
+  }
+  .pick-eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--mustard);
+    font-weight: 500;
+  }
+  .pick-name {
+    font-family: 'Fraunces', serif;
+    font-size: 28px;
+    font-weight: 500;
+    font-style: italic;
+    margin: 2px 0 0;
+  }
+  .pick-detail {
+    font-size: 13px;
+    color: rgba(251, 246, 234, 0.7);
+    margin-top: 2px;
+  }
+
+  /* ---------- Layout grid ---------- */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 420px;
+    gap: 28px;
+  }
+  @media (max-width: 1000px) {
+    .layout { grid-template-columns: 1fr; }
+    .map-pane { position: static !important; height: 400px !important; }
+    .container { padding: 24px 20px 60px; }
+    .masthead { padding: 24px 20px 16px; }
+  }
+
+  /* ---------- Cards ---------- */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 22px;
+  }
+
+  .card {
+    background: var(--cream);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    box-shadow: var(--shadow);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 1px 0 rgba(42, 29, 18, 0.04), 0 16px 32px -16px rgba(42, 29, 18, 0.32);
+    border-color: var(--ink-faded);
+  }
+  .card.is-picked {
+    border-color: var(--rust);
+    border-width: 2px;
+  }
+  .card.is-active {
+    outline: 2px solid var(--rust);
+    outline-offset: 2px;
+  }
+
+  .card-img {
+    aspect-ratio: 16 / 10;
+    width: 100%;
+    object-fit: cover;
+    display: block;
+    background: var(--paper-deep);
+    filter: saturate(0.92) contrast(0.96);
+  }
+
+  .card-stamp {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: rgba(251, 246, 234, 0.94);
+    color: var(--ink);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    padding: 5px 10px;
+    border-radius: 2px;
+    font-weight: 500;
+    border: 1px solid var(--line);
+    backdrop-filter: blur(4px);
+  }
+
+  .card-body { padding: 18px 20px 20px; flex: 1; display: flex; flex-direction: column; }
+
+  .card-meta-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-faded);
+    margin-bottom: 8px;
+  }
+  .price { color: var(--olive); font-weight: 600; letter-spacing: 0.04em; }
+
+  .card-title {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 500;
+    line-height: 1.15;
+    margin: 0 0 4px;
+    color: var(--ink);
+  }
+  .card-tagline {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin: 0 0 14px;
+    line-height: 1.4;
+  }
+
+  .card-divider {
+    height: 1px;
+    background: var(--line-soft);
+    margin: 4px 0 12px;
+  }
+
+  .card-info {
+    font-size: 12px;
+    color: var(--ink-soft);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 14px;
+  }
+  .card-info-row { display: flex; align-items: center; gap: 8px; }
+  .card-info-row svg { flex-shrink: 0; color: var(--ink-faded); }
+
+  .card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px dashed var(--line);
+    gap: 10px;
+  }
+
+  .vote-btn {
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    background: var(--paper-deep);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 6px 14px 6px 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s;
+  }
+  .vote-btn:hover { background: var(--mustard); border-color: var(--mustard); color: var(--ink); }
+  .vote-btn.voted { background: var(--rust); border-color: var(--rust); color: var(--cream); }
+  .vote-btn .heart { width: 14px; height: 14px; }
+
+  .links {
+    display: flex;
+    gap: 6px;
+  }
+  .link-pill {
+    font-size: 11px;
+    color: var(--ink-soft);
+    text-decoration: none;
+    padding: 5px 10px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    background: var(--paper);
+    transition: all 0.15s;
+    letter-spacing: 0.02em;
+  }
+  .link-pill:hover { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+
+  /* ---------- Map ---------- */
+  .map-pane {
+    position: sticky;
+    top: 24px;
+    height: calc(100vh - 48px);
+    max-height: 720px;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
+    background: var(--cream);
+  }
+  #map { width: 100%; height: 100%; }
+  .leaflet-container { font-family: inherit; background: var(--paper-deep); }
+
+  .marker-pin {
+    width: 30px;
+    height: 30px;
+    border-radius: 50% 50% 50% 0;
+    background: var(--rust);
+    transform: rotate(-45deg);
+    border: 2px solid var(--cream);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .marker-pin::after {
+    content: '';
+    position: absolute;
+    top: 7px; left: 7px;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--cream);
+  }
+  .marker-pin.active {
+    background: var(--ink);
+    transform: rotate(-45deg) scale(1.25);
+    z-index: 1000;
+  }
+  .marker-pin.picked {
+    background: var(--mustard);
+  }
+
+  .leaflet-popup-content-wrapper {
+    background: var(--cream);
+    border-radius: 4px;
+    border: 1px solid var(--line);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  }
+  .leaflet-popup-content {
+    margin: 12px 14px;
+    font-family: inherit;
+    color: var(--ink);
+  }
+  .leaflet-popup-tip { background: var(--cream); }
+  .popup-title {
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    font-weight: 500;
+    margin: 0 0 4px;
+  }
+  .popup-meta { font-size: 11px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.1em; }
+
+  /* ---------- Empty ---------- */
+  .empty {
+    text-align: center;
+    padding: 80px 24px;
+    color: var(--ink-soft);
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 18px;
+    grid-column: 1 / -1;
+  }
+
+  /* ---------- Footer ---------- */
+  .footer {
+    text-align: center;
+    margin-top: 60px;
+    padding-top: 24px;
+    border-top: 1px dashed var(--line);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-faded);
+  }
+
+  /* roll dice animation */
+  @keyframes roll {
+    0%   { transform: rotate(0deg) scale(1); }
+    50%  { transform: rotate(180deg) scale(1.2); }
+    100% { transform: rotate(360deg) scale(1); }
+  }
+  .rolling { animation: roll 0.6s ease; }
+
+  /* fade in for cards on load */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .card { animation: fadeUp 0.4s ease backwards; }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-top">
+    <span><span class="dot"></span> Vol. I &nbsp;·&nbsp; No. 04</span>
+    <span id="today-date">Monday Edition</span>
+    <span>Vibe-codé avec le cul</span>
+  </div>
+  <h1 class="title">Main Quest <span class="amp">&amp;</span> The Lunch</h1>
+  <p class="subtitle">— a small companion for hungry colleagues —</p>
+</header>
+
+<div id="root" class="container"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+<script type="text/babel" data-presets="env,react">
+const { useState, useMemo, useEffect, useRef, useCallback } = React;
+
+/* ===========================================================
+   RESTAURANTS — 13e arrondissement, around BNF / Olympiades
+   walkMinutes is measured roughly from BNF (48.8338, 2.3760).
+   Tweak as needed.
+   =========================================================== */
+const OFFICE = { lat: 48.8218, lng: 2.3708 }; // BNF — adjust to your office
+const walkFrom = (lat, lng) => {
+  // rough Manhattan-ish walk estimate; ~1.3 km/min not realistic, so use ~80m/min
+  const dLat = (lat - OFFICE.lat) * 111000;
+  const dLng = (lng - OFFICE.lng) * 111000 * Math.cos(OFFICE.lat * Math.PI / 180);
+  const meters = Math.sqrt(dLat * dLat + dLng * dLng) * 1.25; // detour factor
+  return Math.max(1, Math.round(meters / 80));
+};
+
+const RESTAURANTS = [
+  {
+    id: 1,
+    name: "Pho Bida Viet Nam",
+    tagline: "Institution du quartier — un phở qui se prononce \"feu\".",
+    cuisine: "Vietnamese",
+    price: 1,
+    address: "36-38 rue Nationale, 75013 Paris",
+    lat: 48.8242, lng: 2.3681,
+    image: "https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?w=800&q=80",
+    mapsUrl: "https://maps.app.goo.gl/biTmmuA9SaiHN4hu5",
+    siteUrl: null,
+    menuUrl: "https://deliveroo.fr/en/menu/paris/13eme-bibliotheque-francois-mitterrand/pho-bida-vietnam",
+  },
+  {
+    id: 2,
+    name: "Baby Gam",
+    tagline: "Nouilles biang biang faites main, rien à redire.",
+    cuisine: "Chinese",
+    price: 2,
+    address: "31 bis rue Nationale, 75013 Paris",
+    lat: 48.8239, lng: 2.3680,
+    image: "https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd?w=800&q=80",
+    mapsUrl: "https://maps.app.goo.gl/MHz4PeCf4Rp7W99y6",
+    siteUrl: "https://babygam.fr/",
+    menuUrl: "https://babygam.fr/menu",
+  },
+  {
+    id: 3,
+    name: "Lao Viet",
+    tagline: "Familial, généreux, on revient pour les brochettes.",
+    cuisine: "Vietnamese",
+    price: 2,
+    address: "24 boulevard Masséna, 75013 Paris",
+    lat: 48.8233, lng: 2.3739,
+    image: "https://images.unsplash.com/photo-1559314809-0d155014e29e?w=800&q=80",
+    mapsUrl: "https://maps.app.goo.gl/suATbLoRfd28NEVT7",
+    siteUrl: "https://restaurantlaoviet.com/",
+    menuUrl: "https://restaurantlaoviet.com/notre-carte/",
+  },
+  {
+    id: 4,
+    name: "Coupi",
+    tagline: "Bánh mì, tacobao, kimchi fries — fusion qui marche.",
+    cuisine: "Vietnamese",
+    price: 1,
+    address: "48 av. de la Porte d'Ivry, 75013 Paris",
+    lat: 48.8214, lng: 2.3701,
+    image: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=800&q=80",
+    mapsUrl: "https://maps.app.goo.gl/S4sNQQD77aHFmf3s5",
+    siteUrl: "https://www.coupibar.fr/",
+    menuUrl: "https://www.coupibar.fr/menu.html",
+  },
+  {
+    id: 5,
+    name: "Héritage",
+    tagline: "Pain au levain, viennoiseries, fait maison.",
+    cuisine: "Bakery",
+    price: 1,
+    address: "89 bis rue de Tolbiac, 75013 Paris",
+    lat: 48.8270, lng: 2.3669,
+    image: "https://images.unsplash.com/photo-1568254183919-78a4f43a2877?w=800&q=80",
+    mapsUrl: "https://maps.app.goo.gl/n9hrZ3TLTYTrMqHn8",
+    siteUrl: "https://heritageboulangerie.wordpress.com/",
+    menuUrl: null,
+  },
+  {
+    id: 6,
+    name: "Béryl",
+    tagline: "Mezze libanais, baklava offert si tu fais ami-ami.",
+    cuisine: "Lebanese",
+    price: 2,
+    address: "68 rue Albert, 75013 Paris",
+    lat: 48.8266, lng: 2.3713,
+    image: "https://images.unsplash.com/photo-1544510808-91bcbee1df55?w=800&q=80",
+    mapsUrl: "https://maps.app.goo.gl/7S9o48XFLiRdwgVUA",
+    siteUrl: null,
+    menuUrl: "https://deliveroo.fr/fr/menu/paris/13eme-bibliotheque-francois-mitterrand/beryl",
+  },
+  {
+    id: 7,
+    name: "Chez Madame Lin",
+    tagline: "Cuisine thaï, formule midi raisonnable.",
+    cuisine: "Thai",
+    price: 2,
+    address: "82 rue Albert, 75013 Paris",
+    lat: 48.8271, lng: 2.3708,
+    image: "https://images.unsplash.com/photo-1559314809-0d155014e29e?w=800&q=80",
+    mapsUrl: "https://maps.app.goo.gl/Xy2Yck28s2SXhptP9",
+    siteUrl: null,
+    menuUrl: "https://www.ubereats.com/fr/store/chez-madame-lin/MGYyLSzhXUGH9LsB5lg6eA",
+  },
+  {
+    id: 8,
+    name: "La Gatinaise",
+    tagline: "Boulangerie + couscous : le mariage improbable.",
+    cuisine: "Bakery",
+    price: 1,
+    address: "21 villa d'Esté, 75013 Paris",
+    lat: 48.8221, lng: 2.3665,
+    image: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800&q=80",
+    mapsUrl: "https://maps.app.goo.gl/ECakrpFNPC71mMsQA",
+    siteUrl: "https://lagatinaise.com/",
+    menuUrl: null,
+  },
+  {
+    id: 9,
+    name: "Farinez'vous",
+    tagline: "Pains, viennoiseries, quiche du midi. Ferme le vendredi.",
+    cuisine: "Bakery",
+    price: 1,
+    address: "19 rue du Château des Rentiers, 75013 Paris",
+    lat: 48.8237, lng: 2.3706,
+    image: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=800&q=80",
+    mapsUrl: "https://maps.app.goo.gl/RchBagctBDsPSS6R9",
+    siteUrl: "https://www.farinez-vous.com/",
+    menuUrl: null,
+  },
+  {
+    id: 10,
+    name: "Ristorante Venezia",
+    tagline: "« Le resto de K » — pâtes & pizzas, ambiance famiglia.",
+    cuisine: "Italian",
+    price: 2,
+    address: "66 bis rue Albert, 75013 Paris",
+    lat: 48.8265, lng: 2.3713,
+    image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&q=80",
+    mapsUrl: "https://maps.app.goo.gl/uYdBBFoNW3VPQMYy6",
+    siteUrl: null,
+    menuUrl: null,
+  },
+  {
+    id: 11,
+    name: "GFC (Golden Fried Chicken)",
+    tagline: "Poulet frit, burgers, indien, péruvien, angolais — et la plomberie.",
+    cuisine: "Halal",
+    price: 1,
+    address: "2 rue de Patay, 75013 Paris",
+    lat: 48.8245, lng: 2.3764,
+    image: "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=800&q=80",
+    mapsUrl: "https://maps.app.goo.gl/m336HVVWcwBxHrnb8",
+    siteUrl: null,
+    menuUrl: null,
+  },
+  {
+    id: 12,
+    name: "Samouraï",
+    tagline: "Sushis, sashimi, tout frais — petite salle, grand cœur.",
+    cuisine: "Japanese",
+    price: 2,
+    address: "42 av. de la Porte d'Ivry, 75013 Paris",
+    lat: 48.8209, lng: 2.3710,
+    image: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=800&q=80",
+    mapsUrl: "https://maps.app.goo.gl/X8hqfrBmqY9sGNws9",
+    siteUrl: "https://www.samouraiparis13.fr/",
+    menuUrl: "https://www.samouraiparis13.fr/carte/",
+  },
+  {
+    id: 13,
+    name: "Boulangerie Maison Caquelin 🚫",
+    tagline: "Boulangerie « pas ouf ». Pour les jours où on n'a pas le choix.",
+    cuisine: "Bakery",
+    price: 1,
+    address: "50 av. de la Porte d'Ivry, 75013 Paris",
+    lat: 48.8215, lng: 2.3699,
+    image: "https://images.unsplash.com/photo-1517433367423-c7e5b0f35086?w=800&q=80",
+    mapsUrl: "https://maps.app.goo.gl/R2goVc7kFZK2mFPV9",
+    siteUrl: null,
+    menuUrl: null,
+  },
+  {
+    id: 14,
+    name: "Tang Frères",
+    tagline: "Traiteur chinois en libre-service. Vite fait, copieux.",
+    cuisine: "Chinese",
+    price: 1,
+    address: "48 av. d'Ivry, 75013 Paris",
+    lat: 48.8239, lng: 2.3655,
+    image: "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=800&q=80",
+    mapsUrl: "https://maps.app.goo.gl/vatu8eCXMkqVU1xo7",
+    siteUrl: "https://www.tang-freres.fr/",
+    menuUrl: null,
+  },
+  {
+    id: 15,
+    name: "Bibim House Choisy",
+    tagline: "Bibimbap au fond de pierre brûlante, riz qui croustille.",
+    cuisine: "Korean",
+    price: 2,
+    address: "29 av. de la Porte de Choisy, 75013 Paris",
+    lat: 48.8192, lng: 2.3651,
+    image: "https://images.unsplash.com/photo-1525755662778-989d0524087e?w=800&q=80",
+    mapsUrl: "https://maps.app.goo.gl/JemzEAQnTr5935N67",
+    siteUrl: "https://bibim13.fr/",
+    menuUrl: "https://bibim13.fr/menu",
+  },
+  {
+    id: 16,
+    name: "New Hoa Khoan",
+    tagline: "Le meilleur Loc Lac du quartier, paraît-il. À tester.",
+    cuisine: "Chinese",
+    price: 1,
+    address: "15 av. de Choisy, 75013 Paris",
+    lat: 48.8208, lng: 2.3635,
+    image: "https://images.unsplash.com/photo-1525755662778-989d0524087e?w=800&q=80",
+    mapsUrl: "https://maps.app.goo.gl/9ykDgjKdGsqvW6H78",
+    siteUrl: null,
+    menuUrl: null,
+  },
+].map(r => ({ ...r, walkMinutes: walkFrom(r.lat, r.lng) }));
+
+/* ----------- helpers ----------- */
+const priceLabel = (p) => '€'.repeat(p) + '·'.repeat(3 - p).replace(/./g, '');
+const priceFull = (p) => '€€€'.split('').map((c, i) => i < p ? c : '·').join('');
+
+const STORAGE_KEY = 'lunchledger.votes.v1';
+const loadVotes = () => {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+  catch { return {}; }
+};
+const saveVotes = (v) => localStorage.setItem(STORAGE_KEY, JSON.stringify(v));
+
+/* ----------- icons ----------- */
+const IconWalk = () => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="13" cy="4" r="2"/><path d="M7 22l2-7 2-3-3-2 1-5 4 1 3 4 3 2"/></svg>
+);
+const IconPin = () => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+);
+const IconHeart = ({ filled }) => (
+  <svg className="heart" viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+);
+const IconDice = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8" cy="8" r="1.2" fill="currentColor"/><circle cx="16" cy="16" r="1.2" fill="currentColor"/><circle cx="16" cy="8" r="1.2" fill="currentColor"/><circle cx="8" cy="16" r="1.2" fill="currentColor"/></svg>
+);
+
+/* ===========================================================
+   App
+   =========================================================== */
+function App() {
+  const [search, setSearch] = useState('');
+  const [cuisine, setCuisine] = useState('all');
+  const [priceMax, setPriceMax] = useState(3);
+  const [walkMax, setWalkMax] = useState(20);
+  const [sortBy, setSortBy] = useState('votes');
+  const [votes, setVotes] = useState(loadVotes);
+  const [activeId, setActiveId] = useState(null);
+  const [pickedId, setPickedId] = useState(null);
+  const [rolling, setRolling] = useState(false);
+
+  useEffect(() => saveVotes(votes), [votes]);
+
+  /* set today's date */
+  useEffect(() => {
+    const el = document.getElementById('today-date');
+    if (el) {
+      const d = new Date();
+      el.textContent = d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+    }
+  }, []);
+
+  const cuisines = useMemo(
+    () => ['all', ...Array.from(new Set(RESTAURANTS.map(r => r.cuisine))).sort()],
+    []
+  );
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    let list = RESTAURANTS.filter(r => {
+      if (cuisine !== 'all' && r.cuisine !== cuisine) return false;
+      if (r.price > priceMax) return false;
+      if (r.walkMinutes > walkMax) return false;
+      if (q && !(r.name.toLowerCase().includes(q) || r.cuisine.toLowerCase().includes(q) || r.tagline.toLowerCase().includes(q))) return false;
+      return true;
+    });
+    list.sort((a, b) => {
+      if (sortBy === 'votes') return (votes[b.id] || 0) - (votes[a.id] || 0) || a.name.localeCompare(b.name);
+      if (sortBy === 'walk')  return a.walkMinutes - b.walkMinutes;
+      if (sortBy === 'price') return a.price - b.price;
+      return a.name.localeCompare(b.name);
+    });
+    return list;
+  }, [search, cuisine, priceMax, walkMax, sortBy, votes]);
+
+  const toggleVote = useCallback((id) => {
+    setVotes(v => {
+      const next = { ...v };
+      if (next[id]) delete next[id];
+      else next[id] = 1;
+      return next;
+    });
+  }, []);
+
+  const rollDice = () => {
+    if (filtered.length === 0) return;
+    setRolling(true);
+    let counter = 0;
+    const total = 14;
+    const tick = () => {
+      counter++;
+      const r = filtered[Math.floor(Math.random() * filtered.length)];
+      setPickedId(r.id);
+      setActiveId(r.id);
+      if (counter < total) {
+        setTimeout(tick, 60 + counter * 12);
+      } else {
+        setRolling(false);
+      }
+    };
+    tick();
+  };
+
+  const totalVotes = Object.values(votes).reduce((a, b) => a + b, 0);
+  const pickedRestaurant = pickedId ? RESTAURANTS.find(r => r.id === pickedId) : null;
+
+  return (
+    <>
+      {/* Toolbar */}
+      <div className="toolbar">
+        <div className="filter-group">
+          <span className="filter-label">Find</span>
+          <input
+            type="text"
+            placeholder="Search by name, cuisine…"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            style={{ width: 200 }}
+          />
+        </div>
+
+        <div className="filter-group">
+          <span className="filter-label">Cuisine</span>
+          <select value={cuisine} onChange={e => setCuisine(e.target.value)}>
+            {cuisines.map(c => <option key={c} value={c}>{c === 'all' ? 'All cuisines' : c}</option>)}
+          </select>
+        </div>
+
+        <div className="filter-group">
+          <span className="filter-label">Price ≤</span>
+          <select value={priceMax} onChange={e => setPriceMax(+e.target.value)}>
+            <option value={1}>€</option>
+            <option value={2}>€€</option>
+            <option value={3}>€€€</option>
+          </select>
+        </div>
+
+        <div className="filter-group">
+          <span className="filter-label">Walk ≤</span>
+          <select value={walkMax} onChange={e => setWalkMax(+e.target.value)}>
+            <option value={5}>5 min</option>
+            <option value={10}>10 min</option>
+            <option value={15}>15 min</option>
+            <option value={20}>any</option>
+          </select>
+        </div>
+
+        <div className="filter-group">
+          <span className="filter-label">Sort</span>
+          <select value={sortBy} onChange={e => setSortBy(e.target.value)}>
+            <option value="votes">Most voted</option>
+            <option value="walk">Closest</option>
+            <option value="price">Cheapest</option>
+            <option value="name">Name (A–Z)</option>
+          </select>
+        </div>
+
+        <div className="toolbar-spacer" />
+
+        <button className={`btn btn-primary ${rolling ? 'rolling' : ''}`} onClick={rollDice}>
+          <IconDice />&nbsp;&nbsp;Decide for us
+        </button>
+      </div>
+
+      <div className="stats-line">
+        <strong>{filtered.length}</strong> places match your appetite
+        {totalVotes > 0 && <> · <strong>{totalVotes}</strong> {totalVotes === 1 ? 'vote' : 'votes'} cast today</>}
+      </div>
+
+      {pickedRestaurant && (
+        <div className="pick-banner">
+          <div style={{ flex: 1 }}>
+            <div className="pick-eyebrow">Today's verdict</div>
+            <div className="pick-name">{pickedRestaurant.name}</div>
+            <div className="pick-detail">{pickedRestaurant.tagline} &nbsp;·&nbsp; {pickedRestaurant.walkMinutes} min walk</div>
+          </div>
+          <a className="btn" href={pickedRestaurant.mapsUrl} target="_blank" rel="noreferrer">Take me there →</a>
+        </div>
+      )}
+
+      <div className="layout">
+        <div className="cards">
+          {filtered.length === 0 ? (
+            <div className="empty">
+              No restaurants match. Loosen the filters and try again.
+            </div>
+          ) : filtered.map((r, i) => (
+            <Card
+              key={r.id}
+              r={r}
+              voted={!!votes[r.id]}
+              isPicked={r.id === pickedId}
+              isActive={r.id === activeId}
+              onVote={() => toggleVote(r.id)}
+              onHover={() => setActiveId(r.id)}
+              onLeave={() => setActiveId(null)}
+              delay={i * 40}
+            />
+          ))}
+        </div>
+
+        <div className="map-pane">
+          <MapView
+            restaurants={filtered}
+            activeId={activeId}
+            pickedId={pickedId}
+            onMarkerClick={(id) => setActiveId(id)}
+          />
+        </div>
+      </div>
+
+      <div className="footer">
+	Contactez l'administrateur pour ajouter de nouveaux restaurants ·Fait avec amour pour l'équipe
+      </div>
+    </>
+  );
+}
+
+/* ----------- Card ----------- */
+function Card({ r, voted, isPicked, isActive, onVote, onHover, onLeave, delay }) {
+  return (
+    <article
+      className={`card ${isPicked ? 'is-picked' : ''} ${isActive ? 'is-active' : ''}`}
+      style={{ animationDelay: `${delay}ms` }}
+      onMouseEnter={onHover}
+      onMouseLeave={onLeave}
+    >
+      <div style={{ position: 'relative' }}>
+        <img
+          src={r.image}
+          alt={r.name}
+          className="card-img"
+          loading="lazy"
+          onError={(e) => { e.target.style.background = 'var(--paper-deep)'; e.target.removeAttribute('src'); }}
+        />
+        <div className="card-stamp">{r.cuisine}</div>
+      </div>
+      <div className="card-body">
+        <div className="card-meta-top">
+          <span><IconWalk /> &nbsp;{r.walkMinutes} min walk</span>
+          <span className="price">{priceFull(r.price)}</span>
+        </div>
+        <h3 className="card-title">{r.name}</h3>
+        <p className="card-tagline">"{r.tagline}"</p>
+        <div className="card-divider" />
+        <div className="card-info">
+          <div className="card-info-row"><IconPin />{r.address}</div>
+        </div>
+        <div className="card-footer">
+          <button
+            className={`vote-btn ${voted ? 'voted' : ''}`}
+            onClick={(e) => { e.stopPropagation(); onVote(); }}
+            title={voted ? 'Remove vote' : 'Vote for this'}
+          >
+            <IconHeart filled={voted} />
+            {voted ? 'Voted' : 'Vote'}
+          </button>
+          <div className="links">
+            <a className="link-pill" href={r.mapsUrl} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()}>Map</a>
+            {r.siteUrl && <a className="link-pill" href={r.siteUrl} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()}>Site</a>}
+            {r.menuUrl && <a className="link-pill" href={r.menuUrl} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()}>Menu</a>}
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+/* ----------- Map ----------- */
+function MapView({ restaurants, activeId, pickedId, onMarkerClick }) {
+  const containerRef = useRef(null);
+  const mapRef = useRef(null);
+  const markersRef = useRef({});
+
+  useEffect(() => {
+    if (mapRef.current || !containerRef.current) return;
+    const center = restaurants.length
+      ? [restaurants[0].lat, restaurants[0].lng]
+      : [48.8649, 2.3483];
+    mapRef.current = L.map(containerRef.current, {
+      center, zoom: 15, scrollWheelZoom: true, zoomControl: true,
+    });
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '© OpenStreetMap · © CARTO',
+      subdomains: 'abcd', maxZoom: 19,
+    }).addTo(mapRef.current);
+  }, []);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    Object.values(markersRef.current).forEach(m => map.removeLayer(m));
+    markersRef.current = {};
+
+    if (restaurants.length === 0) return;
+
+    const bounds = L.latLngBounds([]);
+    restaurants.forEach(r => {
+      const isActive = r.id === activeId;
+      const isPicked = r.id === pickedId;
+      const cls = `marker-pin${isActive ? ' active' : ''}${isPicked ? ' picked' : ''}`;
+      const icon = L.divIcon({
+        className: '',
+        html: `<div class="${cls}"></div>`,
+        iconSize: [30, 30],
+        iconAnchor: [15, 30],
+      });
+      const m = L.marker([r.lat, r.lng], { icon }).addTo(map);
+      m.bindPopup(`
+        <div class="popup-title">${r.name}</div>
+        <div class="popup-meta">${r.cuisine} · ${r.walkMinutes} min walk</div>
+      `);
+      m.on('click', () => onMarkerClick(r.id));
+      markersRef.current[r.id] = m;
+      bounds.extend([r.lat, r.lng]);
+    });
+
+    if (restaurants.length > 1) {
+      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 });
+    } else {
+      map.setView([restaurants[0].lat, restaurants[0].lng], 16);
+    }
+  }, [restaurants, activeId, pickedId]);
+
+  useEffect(() => {
+    if (activeId && markersRef.current[activeId] && mapRef.current) {
+      const r = restaurants.find(x => x.id === activeId);
+      if (r) mapRef.current.panTo([r.lat, r.lng], { animate: true, duration: 0.4 });
+    }
+  }, [activeId]);
+
+  return <div id="map" ref={containerRef} />;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+
+</body>
+</html>
