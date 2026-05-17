@@ -351,25 +351,6 @@
     gap: 10px;
   }
 
-  .vote-btn {
-    font-family: inherit;
-    font-size: 13px;
-    font-weight: 500;
-    background: var(--paper-deep);
-    color: var(--ink);
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    padding: 6px 14px 6px 10px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.15s;
-  }
-  .vote-btn:hover { background: var(--mustard); border-color: var(--mustard); color: var(--ink); }
-  .vote-btn.voted { background: var(--rust); border-color: var(--rust); color: var(--cream); }
-  .vote-btn .heart { width: 14px; height: 14px; }
-
   .links {
     display: flex;
     gap: 6px;
@@ -741,22 +722,12 @@ const RESTAURANTS = [
 const priceLabel = (p) => '€'.repeat(p) + '·'.repeat(3 - p).replace(/./g, '');
 const priceFull = (p) => '€€€'.split('').map((c, i) => i < p ? c : '·').join('');
 
-const STORAGE_KEY = 'lunchledger.votes.v1';
-const loadVotes = () => {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
-  catch { return {}; }
-};
-const saveVotes = (v) => localStorage.setItem(STORAGE_KEY, JSON.stringify(v));
-
 /* ----------- icons ----------- */
 const IconWalk = () => (
   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="13" cy="4" r="2"/><path d="M7 22l2-7 2-3-3-2 1-5 4 1 3 4 3 2"/></svg>
 );
 const IconPin = () => (
   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-);
-const IconHeart = ({ filled }) => (
-  <svg className="heart" viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
 );
 const IconDice = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8" cy="8" r="1.2" fill="currentColor"/><circle cx="16" cy="16" r="1.2" fill="currentColor"/><circle cx="16" cy="8" r="1.2" fill="currentColor"/><circle cx="8" cy="16" r="1.2" fill="currentColor"/></svg>
@@ -770,13 +741,10 @@ function App() {
   const [cuisine, setCuisine] = useState('all');
   const [priceMax, setPriceMax] = useState(3);
   const [walkMax, setWalkMax] = useState(20);
-  const [sortBy, setSortBy] = useState('votes');
-  const [votes, setVotes] = useState(loadVotes);
+  const [sortBy, setSortBy] = useState('walk');
   const [activeId, setActiveId] = useState(null);
   const [pickedId, setPickedId] = useState(null);
   const [rolling, setRolling] = useState(false);
-
-  useEffect(() => saveVotes(votes), [votes]);
 
   /* set today's date */
   useEffect(() => {
@@ -802,22 +770,12 @@ function App() {
       return true;
     });
     list.sort((a, b) => {
-      if (sortBy === 'votes') return (votes[b.id] || 0) - (votes[a.id] || 0) || a.name.localeCompare(b.name);
       if (sortBy === 'walk')  return a.walkMinutes - b.walkMinutes;
       if (sortBy === 'price') return a.price - b.price;
       return a.name.localeCompare(b.name);
     });
     return list;
-  }, [search, cuisine, priceMax, walkMax, sortBy, votes]);
-
-  const toggleVote = useCallback((id) => {
-    setVotes(v => {
-      const next = { ...v };
-      if (next[id]) delete next[id];
-      else next[id] = 1;
-      return next;
-    });
-  }, []);
+  }, [search, cuisine, priceMax, walkMax, sortBy]);
 
   const rollDice = () => {
     if (filtered.length === 0) return;
@@ -838,7 +796,6 @@ function App() {
     tick();
   };
 
-  const totalVotes = Object.values(votes).reduce((a, b) => a + b, 0);
   const pickedRestaurant = pickedId ? RESTAURANTS.find(r => r.id === pickedId) : null;
 
   return (
@@ -885,7 +842,6 @@ function App() {
         <div className="filter-group">
           <span className="filter-label">Sort</span>
           <select value={sortBy} onChange={e => setSortBy(e.target.value)}>
-            <option value="votes">Most voted</option>
             <option value="walk">Closest</option>
             <option value="price">Cheapest</option>
             <option value="name">Name (A–Z)</option>
@@ -901,7 +857,6 @@ function App() {
 
       <div className="stats-line">
         <strong>{filtered.length}</strong> places match your appetite
-        {totalVotes > 0 && <> · <strong>{totalVotes}</strong> {totalVotes === 1 ? 'vote' : 'votes'} cast today</>}
       </div>
 
       {pickedRestaurant && (
@@ -925,10 +880,8 @@ function App() {
             <Card
               key={r.id}
               r={r}
-              voted={!!votes[r.id]}
               isPicked={r.id === pickedId}
               isActive={r.id === activeId}
-              onVote={() => toggleVote(r.id)}
               onHover={() => setActiveId(r.id)}
               onLeave={() => setActiveId(null)}
               delay={i * 40}
@@ -954,7 +907,7 @@ function App() {
 }
 
 /* ----------- Card ----------- */
-function Card({ r, voted, isPicked, isActive, onVote, onHover, onLeave, delay }) {
+function Card({ r, isPicked, isActive, onHover, onLeave, delay }) {
   return (
     <article
       className={`card ${isPicked ? 'is-picked' : ''} ${isActive ? 'is-active' : ''}`}
@@ -984,14 +937,6 @@ function Card({ r, voted, isPicked, isActive, onVote, onHover, onLeave, delay })
           <div className="card-info-row"><IconPin />{r.address}</div>
         </div>
         <div className="card-footer">
-          <button
-            className={`vote-btn ${voted ? 'voted' : ''}`}
-            onClick={(e) => { e.stopPropagation(); onVote(); }}
-            title={voted ? 'Remove vote' : 'Vote for this'}
-          >
-            <IconHeart filled={voted} />
-            {voted ? 'Voted' : 'Vote'}
-          </button>
           <div className="links">
             <a className="link-pill" href={r.mapsUrl} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()}>Map</a>
             {r.siteUrl && <a className="link-pill" href={r.siteUrl} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()}>Site</a>}
