@@ -744,6 +744,20 @@ const RESTAURANTS = [
     siteUrl: "https://www.isshinramen.com/",
     menuUrl: "https://www.isshinramen.com/menu",
   },
+  {
+    id: 18,
+    name: "Kotcha",
+    tagline: "Brioches sucrées & salées",
+    cuisine: "Café",
+    price: 1,
+    veg: 2, heaviness: 'light',
+    address: "82 Bd Masséna, 75013 Paris",
+    lat: 48.8214, lng: 2.3682,
+    image: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=800&q=80",
+    mapsUrl: "https://maps.app.goo.gl/37kshrHympUVB8jR6",
+    siteUrl: "https://www.instagram.com/kotcha_paris/",
+    menuUrl: "https://maps.app.goo.gl/6WKCb4cuY6wA1CTNA",
+  },
 ].map(r => ({ ...r, walkMinutes: walkFrom(r.lat, r.lng) }));
 
 /* ----------- helpers ----------- */
