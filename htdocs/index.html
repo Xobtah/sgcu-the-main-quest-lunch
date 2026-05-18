@@ -730,6 +730,20 @@ const RESTAURANTS = [
     siteUrl: null,
     menuUrl: null,
   },
+  {
+    id: 17,
+    name: "Isshin Ramen",
+    tagline: "Ramens",
+    cuisine: "Japanese",
+    price: 1,
+    veg: 2, heaviness: 'light',
+    address: "84 rue Baudricourt, 75013 Paris",
+    lat: 48.8244, lng: 2.3621,
+    image: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=800&q=80",
+    mapsUrl: "https://maps.app.goo.gl/TombSShMx52cWKHd7",
+    siteUrl: "https://www.isshinramen.com/",
+    menuUrl: "https://www.isshinramen.com/menu",
+  },
 ].map(r => ({ ...r, walkMinutes: walkFrom(r.lat, r.lng) }));
 
 /* ----------- helpers ----------- */
