@@ -786,6 +786,20 @@ const RESTAURANTS = [
     siteUrl: "https://banhmi88.eatbu.com/",
     menuUrl: "https://cdn.website.dish.co/media/23/62/2950138/Banh-Mi-88-Sandwich-et-Riz-gluant-BANH-MI-88.png",
   },
+  {
+    id: 21,
+    name: "Picadeli",
+    tagline: "",
+    cuisine: "Salad Bar",
+    price: 1,
+    veg: 2, heaviness: 'light',
+    address: "109 rue de Tolbiac CC Mercure 95, 75013 Paris",
+    lat: 48.8262, lng: 2.3649,
+    image: "https://images.unsplash.com/photo-1517433367423-c7e5b0f35086?w=800&q=80",
+    mapsUrl: "https://maps.app.goo.gl/bfsJVkgovt3Z5gwZ8",
+    siteUrl: "https://www.picadeli.fr/",
+    menuUrl: "https://www.picadeli.fr/fr/nos-produits",
+  },
 ].map(r => ({ ...r, walkMinutes: walkFrom(r.lat, r.lng) }));
 
 /* ----------- helpers ----------- */
